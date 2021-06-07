@@ -42,8 +42,7 @@
                     "left join cadveiculocarga ved on (ved.idveiculo = s.idveiculo and ved.idlogponto_descarga = ponto.idlogponto) " .
                     "left join cadclicarga ced on(ced.idcarga = ved.idcarga)" .
                     "where cast(s.data as date)  = '" . $dtParametro . "' " .
-                    "  and fixo=0 and coalesce(s.velocidade,0) <= 2  and  ponto.idlogponto is not null and v.idcliente ='" . $idcliente . "' " .
-               ///     "  and s.idsituacaodata in (86501,86504) ".
+                    "  and fixo=0 and coalesce(s.velocidade,0) <= 2 and ponto.idlogponto is not null and v.idcliente ='" . $idcliente . "' " .               
                     "order by v.idequipamento, cast(s.data as DateTime)");        
         $IdLogPonto    = "";
         $IdEquipamento = "";
@@ -80,8 +79,7 @@
                     $IdLogPonto = "";
 
                 if ($fixo->rowCount() > 0) {       
-                    $dadoConexao->update(
-                                          'situacoes_data',                                          
+                    $dadoConexao->update( 'situacoes_data',                                          
                                           ' idsituacaodata_ref = :idsituacaodata_ref, '.
                                           ' distancia_ref = :distancia_ref', [                                          
                                           ':id'               => $v['idsituacaodata'],
@@ -138,22 +136,19 @@
                                             "where v.fixo =0 and day(s.data) = Day('" . $v['data'] . "') and s.data <= '" . $v['data'] .
                                             "' and v.idveiculo ='" . $v['idveiculo'] .
                                             "' and ponto.ativo = 1 and v.idcliente ='" . $idcliente . "' and s.idsituacao is not null ".
-                                            " and s.idsituacaodata <> ".$v['idsituacaodata']. 
+                                            " and s.idsituacaodata <> ".$v['idsituacaodata'].  
+                                            " and (s.quantidade_carga <>0 or s.quantidade_descarga <>0)".
                                             " order by s.data desc limit 1");
                                     $carregando = $retorno->fetchAll(\PDO::FETCH_OBJ);
-                                    if (empty($carregando)) {
-                                         if (strtoupper($v['Tipo']) == strtoupper('Carga')){
-                                            $qtdeCarga = $v['capacidade_carga'];
-                                            $qtdeDescarga = 0;
-                                         }
-                                         else {
-                                           $qtdeCarga = 0;
-                                           $qtdeDescarga = $v['capacidade_descarga'];
-                                        }                                        
+                                    if (empty($carregando)) {    
+                                      if (strtoupper($v['Tipo']) == strtoupper('Carga')){
+                                        $qtdeCarga = $v['capacidade_carga'];
+                                        $qtdeDescarga = 0;                        
+                                      }
                                     }
                                     else
-                                    if (($carregando[0]->idsituacao != $sitCarregando) ||
-                                            (strtoupper($carregando[0]->tipo) != strtoupper($v['Tipo']))) {
+                                    if (($carregando[0]->idsituacao != $sitCarregando) &&
+                                        (strtoupper($carregando[0]->tipo) != strtoupper($v['Tipo']))) {
                                         ///Trata Carga 
                                         if ((strtoupper($v['Tipo']) == strtoupper('Carga')) &&
                                                 ($carregando[0]->quantidade_carga <= 0 )) {
